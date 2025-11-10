@@ -89,7 +89,7 @@ const Index = () => {
           </motion.div>
 
           <motion.p variants={fadeInUp} className="text-sm text-muted-foreground">
-            Sem custo de desenvolvimento. Sem risco. 100% performance.
+            Sem custo de desenvolvimento. Sem risco. 100% performance!
           </motion.p>
         </motion.div>
       </section>
