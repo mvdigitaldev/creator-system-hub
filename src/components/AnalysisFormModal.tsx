@@ -1,11 +1,13 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, User, Mail, Phone, Instagram, Globe, Users, Target, TrendingUp, MessageSquare } from "lucide-react";
+import { X, User, Mail, Phone, Instagram, Globe, Users, Target, TrendingUp, MessageSquare, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 interface AnalysisFormModalProps {
   isOpen: boolean;
@@ -13,10 +15,14 @@ interface AnalysisFormModalProps {
 }
 
 const AnalysisFormModal = ({ isOpen, onClose }: AnalysisFormModalProps) => {
+  const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phoneCode: "+55",
     phone: "",
     instagram: "",
     otherNetworks: "",
@@ -30,17 +36,151 @@ const AnalysisFormModal = ({ isOpen, onClose }: AnalysisFormModalProps) => {
     motivation: ""
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    // Nome completo
+    if (!formData.name.trim()) {
+      newErrors.name = "Digite seu nome completo.";
+    } else if (formData.name.trim().length < 3) {
+      newErrors.name = "Nome deve ter no mínimo 3 caracteres.";
+    }
+
+    // E-mail
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.trim()) {
+      newErrors.email = "Digite um e-mail válido.";
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = "Digite um e-mail válido.";
+    }
+
+    // Telefone
+    const phoneDigits = formData.phone.replace(/\D/g, '');
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Digite um número de telefone válido.";
+    } else if (phoneDigits.length < 8 || phoneDigits.length > 15) {
+      newErrors.phone = "Digite um número de telefone válido.";
+    }
+
+    // Instagram
+    const instagramRegex = /^@[a-zA-Z0-9._]+$/;
+    if (!formData.instagram.trim()) {
+      newErrors.instagram = "Digite um usuário do Instagram válido (ex: @seuperfil).";
+    } else if (!instagramRegex.test(formData.instagram)) {
+      newErrors.instagram = "Digite um usuário do Instagram válido (ex: @seuperfil).";
+    }
+
+    // Nicho
+    if (!formData.niche.trim()) {
+      newErrors.niche = "Informe seu nicho de atuação.";
+    }
+
+    // Tipo de sistema
+    if (!formData.systemType.trim()) {
+      newErrors.systemType = "Informe o tipo de sistema desejado.";
+    }
+
+    // Motivação
+    if (!formData.motivation.trim()) {
+      newErrors.motivation = "Conte um pouco sobre você.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      onClose();
-    }, 4000);
+    
+    if (!validateForm()) {
+      toast({
+        title: "Erro de validação",
+        description: "Por favor, corrija os campos destacados.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const payload = {
+        nome: formData.name,
+        email: formData.email,
+        telefone: `${formData.phoneCode} ${formData.phone}`,
+        instagram: formData.instagram,
+        outras_redes: formData.otherNetworks,
+        seguidores: formData.followers,
+        nicho: formData.niche,
+        vende_produto: formData.sellsProducts === "yes",
+        tipo_produto: formData.productType,
+        tipo_sistema: formData.systemType,
+        objetivo: formData.mainGoal,
+        disposicao_investir: formData.willingToInvest,
+        descricao: formData.motivation
+      };
+
+      const response = await fetch("https://webhook.iaagents.online/webhook/dedf5ae2-0802-49b9-a2f1-37cd30f3a176", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao enviar formulário");
+      }
+
+      setSubmitted(true);
+      toast({
+        title: "Formulário enviado!",
+        description: "Nossa equipe entrará em contato em breve.",
+      });
+      
+      setTimeout(() => {
+        setSubmitted(false);
+        onClose();
+        // Reset form
+        setFormData({
+          name: "",
+          email: "",
+          phoneCode: "+55",
+          phone: "",
+          instagram: "",
+          otherNetworks: "",
+          followers: "",
+          niche: "",
+          sellsProducts: "",
+          productType: "",
+          systemType: "",
+          mainGoal: "",
+          willingToInvest: "",
+          motivation: ""
+        });
+        setErrors({});
+      }, 4000);
+    } catch (error) {
+      toast({
+        title: "Erro ao enviar",
+        description: "Não foi possível enviar o formulário. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    // Limpar erro do campo ao editar
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
   };
 
   return (
@@ -94,9 +234,9 @@ const AnalysisFormModal = ({ isOpen, onClose }: AnalysisFormModalProps) => {
                       value={formData.name}
                       onChange={(e) => handleChange("name", e.target.value)}
                       placeholder="Digite seu nome completo"
-                      required
-                      className="bg-card-bg border-border focus:border-neon transition-colors"
+                      className={`bg-card-bg border-border focus:border-neon transition-colors ${errors.name ? 'border-red-500' : ''}`}
                     />
+                    {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                   </div>
 
                   {/* E-mail */}
@@ -111,9 +251,9 @@ const AnalysisFormModal = ({ isOpen, onClose }: AnalysisFormModalProps) => {
                       value={formData.email}
                       onChange={(e) => handleChange("email", e.target.value)}
                       placeholder="Seu melhor e-mail"
-                      required
-                      className="bg-card-bg border-border focus:border-neon transition-colors"
+                      className={`bg-card-bg border-border focus:border-neon transition-colors ${errors.email ? 'border-red-500' : ''}`}
                     />
+                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                   </div>
 
                   {/* Celular */}
@@ -122,14 +262,28 @@ const AnalysisFormModal = ({ isOpen, onClose }: AnalysisFormModalProps) => {
                       <Phone className="w-4 h-4 text-neon" />
                       Celular / WhatsApp
                     </Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => handleChange("phone", e.target.value)}
-                      placeholder="Ex: (11) 99999-9999"
-                      required
-                      className="bg-card-bg border-border focus:border-neon transition-colors"
-                    />
+                    <div className="flex gap-2">
+                      <Select value={formData.phoneCode} onValueChange={(value) => handleChange("phoneCode", value)}>
+                        <SelectTrigger className="w-[110px] bg-card-bg border-border focus:border-neon">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-card-bg border-border">
+                          <SelectItem value="+55">🇧🇷 +55</SelectItem>
+                          <SelectItem value="+1">🇺🇸 +1</SelectItem>
+                          <SelectItem value="+34">🇪🇸 +34</SelectItem>
+                          <SelectItem value="+351">🇵🇹 +351</SelectItem>
+                          <SelectItem value="+44">🇬🇧 +44</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => handleChange("phone", e.target.value)}
+                        placeholder="11 99999-9999"
+                        className={`flex-1 bg-card-bg border-border focus:border-neon transition-colors ${errors.phone ? 'border-red-500' : ''}`}
+                      />
+                    </div>
+                    {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
                   </div>
 
                   {/* Instagram */}
@@ -143,9 +297,9 @@ const AnalysisFormModal = ({ isOpen, onClose }: AnalysisFormModalProps) => {
                       value={formData.instagram}
                       onChange={(e) => handleChange("instagram", e.target.value)}
                       placeholder="Ex: @seuperfil"
-                      required
-                      className="bg-card-bg border-border focus:border-neon transition-colors"
+                      className={`bg-card-bg border-border focus:border-neon transition-colors ${errors.instagram ? 'border-red-500' : ''}`}
                     />
+                    {errors.instagram && <p className="text-red-500 text-xs mt-1">{errors.instagram}</p>}
                   </div>
 
                   {/* Outras redes */}
@@ -200,9 +354,9 @@ const AnalysisFormModal = ({ isOpen, onClose }: AnalysisFormModalProps) => {
                       value={formData.niche}
                       onChange={(e) => handleChange("niche", e.target.value)}
                       placeholder="Ex: fitness, moda, finanças..."
-                      required
-                      className="bg-card-bg border-border focus:border-neon transition-colors"
+                      className={`bg-card-bg border-border focus:border-neon transition-colors ${errors.niche ? 'border-red-500' : ''}`}
                     />
+                    {errors.niche && <p className="text-red-500 text-xs mt-1">{errors.niche}</p>}
                   </div>
 
                   {/* Vende produtos */}
@@ -247,9 +401,9 @@ const AnalysisFormModal = ({ isOpen, onClose }: AnalysisFormModalProps) => {
                       value={formData.systemType}
                       onChange={(e) => handleChange("systemType", e.target.value)}
                       placeholder="Ex: app de treinos, plataforma de membros..."
-                      required
-                      className="bg-card-bg border-border focus:border-neon transition-colors"
+                      className={`bg-card-bg border-border focus:border-neon transition-colors ${errors.systemType ? 'border-red-500' : ''}`}
                     />
+                    {errors.systemType && <p className="text-red-500 text-xs mt-1">{errors.systemType}</p>}
                   </div>
 
                   {/* Objetivo principal */}
@@ -313,18 +467,26 @@ const AnalysisFormModal = ({ isOpen, onClose }: AnalysisFormModalProps) => {
                       value={formData.motivation}
                       onChange={(e) => handleChange("motivation", e.target.value)}
                       placeholder="Compartilhe sua história e objetivos..."
-                      required
-                      className="min-h-[120px] bg-card-bg border-border focus:border-neon transition-colors resize-none"
+                      className={`min-h-[120px] bg-card-bg border-border focus:border-neon transition-colors resize-none ${errors.motivation ? 'border-red-500' : ''}`}
                     />
+                    {errors.motivation && <p className="text-red-500 text-xs mt-1">{errors.motivation}</p>}
                   </div>
 
                   {/* Submit Button */}
                   <Button
                     type="submit"
                     size="lg"
-                    className="w-full bg-gradient-to-r from-neon to-[#0066FF] text-dark-bg hover:opacity-90 hover-glow text-lg py-6 h-auto"
+                    disabled={isLoading}
+                    className="w-full bg-gradient-to-r from-neon to-[#0066FF] text-dark-bg hover:opacity-90 hover-glow text-lg py-6 h-auto disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    ENVIAR ANÁLISE
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        ENVIANDO...
+                      </>
+                    ) : (
+                      "ENVIAR ANÁLISE"
+                    )}
                   </Button>
                 </form>
               </div>
