@@ -13,7 +13,14 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        'space': ['Space Grotesk', 'sans-serif'],
+      },
       colors: {
+        neon: "hsl(var(--neon))",
+        'neon-glow': "hsl(var(--neon-glow))",
+        'dark-bg': "hsl(var(--dark-bg))",
+        'card-bg': "hsl(var(--card-bg))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
