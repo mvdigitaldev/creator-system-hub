@@ -23,24 +23,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-dark-bg text-foreground font-space overflow-x-hidden">
-      {/* Navbar */}
-      <motion.nav 
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className="fixed top-0 w-full z-50 bg-dark-bg/80 backdrop-blur-xl border-b border-border/50"
-      >
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="text-2xl font-bold text-neon glow-neon">Creator Systems</div>
-          <Button 
-            variant="outline" 
-            className="border-neon text-neon hover:bg-neon hover:text-dark-bg hover-glow"
-            onClick={() => setModalOpen(true)}
-          >
-            Começar Agora
-          </Button>
-        </div>
-      </motion.nav>
-
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center px-4 pt-20 overflow-hidden">
         {/* Animated Background */}
@@ -80,7 +62,7 @@ const Index = () => {
           <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-4">
             <Button 
               size="lg" 
-              className="bg-neon text-dark-bg hover:bg-neon-glow hover-glow text-lg px-8 py-6 h-auto group"
+              className="bg-neon text-dark-bg hover:bg-neon-glow hover-glow text-lg md:text-xl w-full md:w-auto h-auto group px-8 py-6"
               onClick={() => setModalOpen(true)}
             >
               QUERO MEU APP GRATUITO!
@@ -161,7 +143,7 @@ const Index = () => {
             <Button 
               variant="outline" 
               size="lg" 
-              className="border-neon text-neon hover:bg-neon hover:text-dark-bg hover-glow"
+              className="border-neon text-neon hover:bg-neon hover:text-dark-bg hover-glow px-8 py-4"
               onClick={() => setModalOpen(true)}
             >
               QUERO SABER COMO FUNCIONA
@@ -322,12 +304,13 @@ const Index = () => {
               
               <Button 
                 size="lg" 
-                className="bg-neon text-dark-bg hover:bg-neon-glow hover-glow text-xl px-12 py-8 h-auto group"
+                className="w-full sm:w-auto bg-neon text-dark-bg hover:bg-neon-glow hover-glow text-xl px-12 py-8 h-auto group whitespace-normal break-words text-center"
                 onClick={() => setModalOpen(true)}
               >
-                COMEÇAR AGORA — QUERO MEU APP GRATUITO
+                COMEÇAR AGORA
                 <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-2 transition-transform" />
               </Button>
+
             </div>
           </motion.div>
         </div>
@@ -336,7 +319,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-12 px-4 border-t border-border/50">
         <div className="container mx-auto text-center text-muted-foreground">
-          <p>© 2025 Creator Systems. Transformando influenciadores em empresários digitais.</p>
+        <p>© {new Date().getFullYear()} MV Digital. Transformando influenciadores em empresários digitais.</p>
         </div>
       </footer>
 

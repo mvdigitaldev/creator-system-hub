@@ -18,6 +18,7 @@ const AnalysisFormModal = ({ isOpen, onClose }: AnalysisFormModalProps) => {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0); // Novo estado para a etapa atual
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     name: "",
@@ -36,63 +37,86 @@ const AnalysisFormModal = ({ isOpen, onClose }: AnalysisFormModalProps) => {
     motivation: ""
   });
 
-  const validateForm = () => {
+  const formSteps = [
+    { id: 0, title: "Seus Dados", fields: ["name", "email", "phoneCode", "phone"] },
+    { id: 1, title: "Presença Online", fields: ["instagram", "otherNetworks", "followers", "niche"] },
+    { id: 2, title: "Sistema & Objetivos", fields: ["sellsProducts", "productType", "systemType", "mainGoal"] },
+    { id: 3, title: "Motivação", fields: ["willingToInvest", "motivation"] },
+  ];
+
+  const validateForm = (step: number) => {
     const newErrors: Record<string, string> = {};
+    const currentStepFields = formSteps[step].fields;
 
-    // Nome completo
-    if (!formData.name.trim()) {
-      newErrors.name = "Digite seu nome completo.";
-    } else if (formData.name.trim().length < 3) {
-      newErrors.name = "Nome deve ter no mínimo 3 caracteres.";
-    }
-
-    // E-mail
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email.trim()) {
-      newErrors.email = "Digite um e-mail válido.";
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = "Digite um e-mail válido.";
-    }
-
-    // Telefone
-    const phoneDigits = formData.phone.replace(/\D/g, '');
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Digite um número de telefone válido.";
-    } else if (phoneDigits.length < 8 || phoneDigits.length > 15) {
-      newErrors.phone = "Digite um número de telefone válido.";
-    }
-
-    // Instagram
-    const instagramRegex = /^@[a-zA-Z0-9._]+$/;
-    if (!formData.instagram.trim()) {
-      newErrors.instagram = "Digite um usuário do Instagram válido (ex: @seuperfil).";
-    } else if (!instagramRegex.test(formData.instagram)) {
-      newErrors.instagram = "Digite um usuário do Instagram válido (ex: @seuperfil).";
-    }
-
-    // Nicho
-    if (!formData.niche.trim()) {
-      newErrors.niche = "Informe seu nicho de atuação.";
-    }
-
-    // Tipo de sistema
-    if (!formData.systemType.trim()) {
-      newErrors.systemType = "Informe o tipo de sistema desejado.";
-    }
-
-    // Motivação
-    if (!formData.motivation.trim()) {
-      newErrors.motivation = "Conte um pouco sobre você.";
-    }
+    currentStepFields.forEach(field => {
+      switch (field) {
+        case "name":
+          if (!formData.name.trim()) {
+            newErrors.name = "Digite seu nome completo.";
+          } else if (formData.name.trim().length < 3) {
+            newErrors.name = "Nome deve ter no mínimo 3 caracteres.";
+          }
+          break;
+        case "email":
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!formData.email.trim()) {
+            newErrors.email = "Digite um e-mail válido.";
+          } else if (!emailRegex.test(formData.email)) {
+            newErrors.email = "Digite um e-mail válido.";
+          }
+          break;
+        case "phone":
+          const phoneDigits = formData.phone.replace(/\D/g, '');
+          if (!formData.phone.trim()) {
+            newErrors.phone = "Digite um número de telefone válido.";
+          } else if (phoneDigits.length < 10 || phoneDigits.length > 11) {
+            newErrors.phone = "O telefone deve ter entre 10 e 11 dígitos.";
+          }
+          break;
+        case "instagram":
+          const instagramRegex = /^@[a-zA-Z0-9._]+$/;
+          if (!formData.instagram.trim()) {
+            newErrors.instagram = "Digite um usuário do Instagram válido (ex: @seuperfil).";
+          } else if (!instagramRegex.test(formData.instagram)) {
+            newErrors.instagram = "Digite um usuário do Instagram válido (ex: @seuperfil).";
+          }
+          break;
+        case "niche":
+          if (!formData.niche.trim()) {
+            newErrors.niche = "Informe seu nicho de atuação.";
+          }
+          break;
+        case "systemType":
+          if (!formData.systemType.trim()) {
+            newErrors.systemType = "Informe o tipo de sistema desejado.";
+          }
+          break;
+        case "motivation":
+          if (!formData.motivation.trim()) {
+            newErrors.motivation = "Conte um pouco sobre você.";
+          }
+          break;
+      }
+    });
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleNext = () => {
+    if (validateForm(currentStep)) {
+      setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const handleBack = () => {
+    setCurrentStep(prev => prev - 1);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (!validateForm(currentStep) || currentStep !== formSteps.length -1 ) { // Valida a última etapa antes de enviar
       toast({
         title: "Erro de validação",
         description: "Por favor, corrija os campos destacados.",
@@ -214,280 +238,340 @@ const AnalysisFormModal = ({ isOpen, onClose }: AnalysisFormModalProps) => {
                 {/* Header */}
                 <div className="mb-8 text-center">
                   <h2 className="text-3xl font-bold mb-3">
-                    Queremos conhecer você antes de criar seu sistema gratuito 🚀
+                    {formSteps[currentStep].title} - Queremos conhecer você antes de criar seu sistema gratuito 🚀
                   </h2>
                   <p className="text-muted-foreground">
                     Preencha o formulário abaixo e nossa equipe entrará em contato
                   </p>
                 </div>
 
+                {/* Step Indicator */}
+                <div className="flex justify-center gap-2 mb-8">
+                  {formSteps.map((step, index) => (
+                    <div
+                      key={step.id}
+                      className={`w-8 h-2 rounded-full transition-all duration-300 ${
+                        currentStep === index ? "bg-neon" : "bg-gray-700"
+                      }`}
+                    ></div>
+                  ))}
+                </div>
+
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Nome completo */}
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="flex items-center gap-2 text-sm font-medium">
-                      <User className="w-4 h-4 text-neon" />
-                      Nome completo
-                    </Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleChange("name", e.target.value)}
-                      placeholder="Digite seu nome completo"
-                      className={`bg-card-bg border-border focus:border-neon transition-colors ${errors.name ? 'border-red-500' : ''}`}
-                    />
-                    {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-                  </div>
+                  {/* Step 0: Dados Pessoais */}
+                  {currentStep === 0 && (
+                    <>
+                      {/* Nome completo */}
+                      <div className="space-y-2">
+                        <Label htmlFor="name" className="flex items-center gap-2 text-sm font-medium">
+                          <User className="w-4 h-4 text-neon" />
+                          Nome completo
+                        </Label>
+                        <Input
+                          id="name"
+                          value={formData.name}
+                          onChange={(e) => handleChange("name", e.target.value)}
+                          placeholder="Digite seu nome completo"
+                          className={`bg-card-bg border-border focus:border-neon transition-colors ${errors.name ? 'border-red-500' : ''}`}
+                        />
+                        {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                      </div>
 
-                  {/* E-mail */}
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium">
-                      <Mail className="w-4 h-4 text-neon" />
-                      E-mail
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleChange("email", e.target.value)}
-                      placeholder="Seu melhor e-mail"
-                      className={`bg-card-bg border-border focus:border-neon transition-colors ${errors.email ? 'border-red-500' : ''}`}
-                    />
-                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-                  </div>
+                      {/* E-mail */}
+                      <div className="space-y-2">
+                        <Label htmlFor="email" className="flex items-center gap-2 text-sm font-medium">
+                          <Mail className="w-4 h-4 text-neon" />
+                          E-mail
+                        </Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => handleChange("email", e.target.value)}
+                          placeholder="Seu melhor e-mail"
+                          className={`bg-card-bg border-border focus:border-neon transition-colors ${errors.email ? 'border-red-500' : ''}`}
+                        />
+                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                      </div>
 
-                  {/* Celular */}
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium">
-                      <Phone className="w-4 h-4 text-neon" />
-                      Celular / WhatsApp
-                    </Label>
-                    <div className="flex gap-2">
-                      <Select value={formData.phoneCode} onValueChange={(value) => handleChange("phoneCode", value)}>
-                        <SelectTrigger className="w-[110px] bg-card-bg border-border focus:border-neon">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-card-bg border-border">
-                          <SelectItem value="+55">🇧🇷 +55</SelectItem>
-                          <SelectItem value="+1">🇺🇸 +1</SelectItem>
-                          <SelectItem value="+34">🇪🇸 +34</SelectItem>
-                          <SelectItem value="+351">🇵🇹 +351</SelectItem>
-                          <SelectItem value="+44">🇬🇧 +44</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Input
-                        id="phone"
-                        value={formData.phone}
-                        onChange={(e) => handleChange("phone", e.target.value)}
-                        placeholder="11 99999-9999"
-                        className={`flex-1 bg-card-bg border-border focus:border-neon transition-colors ${errors.phone ? 'border-red-500' : ''}`}
-                      />
-                    </div>
-                    {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
-                  </div>
+                      {/* Celular */}
+                      <div className="space-y-2">
+                        <Label htmlFor="phone" className="flex items-center gap-2 text-sm font-medium">
+                          <Phone className="w-4 h-4 text-neon" />
+                          Celular / WhatsApp
+                        </Label>
+                        <div className="flex gap-2">
+                          <Select value={formData.phoneCode} onValueChange={(value) => handleChange("phoneCode", value)}>
+                            <SelectTrigger className="w-[110px] bg-card-bg border-border focus:border-neon">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-card-bg border-border">
+                              <SelectItem value="+55">🇧🇷 +55</SelectItem>
+                              <SelectItem value="+1">🇺🇸 +1</SelectItem>
+                              <SelectItem value="+34">🇪🇸 +34</SelectItem>
+                              <SelectItem value="+351">🇵🇹 +351</SelectItem>
+                              <SelectItem value="+44">🇬🇧 +44</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            id="phone"
+                            value={formData.phone}
+                            onChange={(e) => {
+                              const numericValue = e.target.value.replace(/\D/g, ''); // Apenas números
+                              if (numericValue.length <= 11) { // Limita a 11 dígitos
+                                handleChange("phone", numericValue);
+                              }
+                            }}
+                            placeholder="11 99999-9999"
+                            className={`flex-1 bg-card-bg border-border focus:border-neon transition-colors ${errors.phone ? 'border-red-500' : ''}`}
+                          />
+                        </div>
+                        {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
+                      </div>
+                    </>
+                  )}
 
-                  {/* Instagram */}
-                  <div className="space-y-2">
-                    <Label htmlFor="instagram" className="flex items-center gap-2 text-sm font-medium">
-                      <Instagram className="w-4 h-4 text-neon" />
-                      @Instagram principal
-                    </Label>
-                    <Input
-                      id="instagram"
-                      value={formData.instagram}
-                      onChange={(e) => handleChange("instagram", e.target.value)}
-                      placeholder="Ex: @seuperfil"
-                      className={`bg-card-bg border-border focus:border-neon transition-colors ${errors.instagram ? 'border-red-500' : ''}`}
-                    />
-                    {errors.instagram && <p className="text-red-500 text-xs mt-1">{errors.instagram}</p>}
-                  </div>
+                  {/* Step 1: Presença Online */}
+                  {currentStep === 1 && (
+                    <>
+                      {/* Instagram */}
+                      <div className="space-y-2">
+                        <Label htmlFor="instagram" className="flex items-center gap-2 text-sm font-medium">
+                          <Instagram className="w-4 h-4 text-neon" />
+                          @Instagram principal
+                        </Label>
+                        <Input
+                          id="instagram"
+                          value={formData.instagram}
+                          onChange={(e) => handleChange("instagram", e.target.value)}
+                          placeholder="Ex: @seuperfil"
+                          className={`bg-card-bg border-border focus:border-neon transition-colors ${errors.instagram ? 'border-red-500' : ''}`}
+                        />
+                        {errors.instagram && <p className="text-red-500 text-xs mt-1">{errors.instagram}</p>}
+                      </div>
 
-                  {/* Outras redes */}
-                  <div className="space-y-2">
-                    <Label htmlFor="otherNetworks" className="flex items-center gap-2 text-sm font-medium">
-                      <Globe className="w-4 h-4 text-neon" />
-                      Outras redes relevantes
-                    </Label>
-                    <Input
-                      id="otherNetworks"
-                      value={formData.otherNetworks}
-                      onChange={(e) => handleChange("otherNetworks", e.target.value)}
-                      placeholder="Ex: YouTube, TikTok..."
-                      className="bg-card-bg border-border focus:border-neon transition-colors"
-                    />
-                  </div>
+                      {/* Outras redes */}
+                      <div className="space-y-2">
+                        <Label htmlFor="otherNetworks" className="flex items-center gap-2 text-sm font-medium">
+                          <Globe className="w-4 h-4 text-neon" />
+                          Outras redes relevantes
+                        </Label>
+                        <Input
+                          id="otherNetworks"
+                          value={formData.otherNetworks}
+                          onChange={(e) => handleChange("otherNetworks", e.target.value)}
+                          placeholder="Ex: YouTube, TikTok..."
+                          className="bg-card-bg border-border focus:border-neon transition-colors"
+                        />
+                      </div>
 
-                  {/* Seguidores */}
-                  <div className="space-y-3">
-                    <Label className="flex items-center gap-2 text-sm font-medium">
-                      <Users className="w-4 h-4 text-neon" />
-                      Quantos seguidores você tem (somando todas as redes)?
-                    </Label>
-                    <RadioGroup value={formData.followers} onValueChange={(value) => handleChange("followers", value)}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="less-10k" id="less-10k" />
-                        <Label htmlFor="less-10k" className="font-normal cursor-pointer">Menos de 10 mil</Label>
+                      {/* Seguidores */}
+                      <div className="space-y-3">
+                        <Label className="flex items-center gap-2 text-sm font-medium">
+                          <Users className="w-4 h-4 text-neon" />
+                          Quantos seguidores você tem (somando todas as redes)?
+                        </Label>
+                        <RadioGroup value={formData.followers} onValueChange={(value) => handleChange("followers", value)}>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="less-10k" id="less-10k" />
+                            <Label htmlFor="less-10k" className="font-normal cursor-pointer">Menos de 10 mil</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="10k-50k" id="10k-50k" />
+                            <Label htmlFor="10k-50k" className="font-normal cursor-pointer">10 mil – 50 mil</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="50k-200k" id="50k-200k" />
+                            <Label htmlFor="50k-200k" className="font-normal cursor-pointer">50 mil – 200 mil</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="more-200k" id="more-200k" />
+                            <Label htmlFor="more-200k" className="font-normal cursor-pointer">Mais de 200 mil</Label>
+                          </div>
+                        </RadioGroup>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="10k-50k" id="10k-50k" />
-                        <Label htmlFor="10k-50k" className="font-normal cursor-pointer">10 mil – 50 mil</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="50k-200k" id="50k-200k" />
-                        <Label htmlFor="50k-200k" className="font-normal cursor-pointer">50 mil – 200 mil</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="more-200k" id="more-200k" />
-                        <Label htmlFor="more-200k" className="font-normal cursor-pointer">Mais de 200 mil</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
 
-                  {/* Nicho */}
-                  <div className="space-y-2">
-                    <Label htmlFor="niche" className="flex items-center gap-2 text-sm font-medium">
-                      <Target className="w-4 h-4 text-neon" />
-                      Qual é o seu nicho de atuação?
-                    </Label>
-                    <Input
-                      id="niche"
-                      value={formData.niche}
-                      onChange={(e) => handleChange("niche", e.target.value)}
-                      placeholder="Ex: fitness, moda, finanças..."
-                      className={`bg-card-bg border-border focus:border-neon transition-colors ${errors.niche ? 'border-red-500' : ''}`}
-                    />
-                    {errors.niche && <p className="text-red-500 text-xs mt-1">{errors.niche}</p>}
-                  </div>
+                      {/* Nicho */}
+                      <div className="space-y-2">
+                        <Label htmlFor="niche" className="flex items-center gap-2 text-sm font-medium">
+                          <Target className="w-4 h-4 text-neon" />
+                          Qual é o seu nicho de atuação?
+                        </Label>
+                        <Input
+                          id="niche"
+                          value={formData.niche}
+                          onChange={(e) => handleChange("niche", e.target.value)}
+                          placeholder="Ex: fitness, moda, finanças..."
+                          className={`bg-card-bg border-border focus:border-neon transition-colors ${errors.niche ? 'border-red-500' : ''}`}
+                        />
+                        {errors.niche && <p className="text-red-500 text-xs mt-1">{errors.niche}</p>}
+                      </div>
+                    </>
+                  )}
 
-                  {/* Vende produtos */}
-                  <div className="space-y-3">
-                    <Label className="flex items-center gap-2 text-sm font-medium">
-                      <TrendingUp className="w-4 h-4 text-neon" />
-                      Você já vende algum produto ou serviço?
-                    </Label>
-                    <RadioGroup value={formData.sellsProducts} onValueChange={(value) => handleChange("sellsProducts", value)}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="yes" id="sells-yes" />
-                        <Label htmlFor="sells-yes" className="font-normal cursor-pointer">Sim</Label>
+                  {/* Step 2: Sistema e Objetivos */}
+                  {currentStep === 2 && (
+                    <>
+                      {/* Vende produtos */}
+                      <div className="space-y-3">
+                        <Label className="flex items-center gap-2 text-sm font-medium">
+                          <TrendingUp className="w-4 h-4 text-neon" />
+                          Você já vende algum produto ou serviço?
+                        </Label>
+                        <RadioGroup value={formData.sellsProducts} onValueChange={(value) => handleChange("sellsProducts", value)}>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="yes" id="sells-yes" />
+                            <Label htmlFor="sells-yes" className="font-normal cursor-pointer">Sim</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="no" id="sells-no" />
+                            <Label htmlFor="sells-no" className="font-normal cursor-pointer">Não</Label>
+                          </div>
+                        </RadioGroup>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="no" id="sells-no" />
-                        <Label htmlFor="sells-no" className="font-normal cursor-pointer">Não</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
 
-                  {/* Tipo de produto */}
-                  <div className="space-y-2">
-                    <Label htmlFor="productType" className="text-sm font-medium">
-                      Qual tipo de produto ou serviço você vende atualmente?
-                    </Label>
-                    <Input
-                      id="productType"
-                      value={formData.productType}
-                      onChange={(e) => handleChange("productType", e.target.value)}
-                      placeholder="Ex: curso, consultoria, e-book..."
-                      className="bg-card-bg border-border focus:border-neon transition-colors"
-                    />
-                  </div>
+                      {/* Tipo de produto */}
+                      <div className="space-y-2">
+                        <Label htmlFor="productType" className="text-sm font-medium">
+                          Qual tipo de produto ou serviço você vende atualmente?
+                        </Label>
+                        <Input
+                          id="productType"
+                          value={formData.productType}
+                          onChange={(e) => handleChange("productType", e.target.value)}
+                          placeholder="Ex: curso, consultoria, e-book..."
+                          className="bg-card-bg border-border focus:border-neon transition-colors"
+                        />
+                      </div>
 
-                  {/* Tipo de sistema */}
-                  <div className="space-y-2">
-                    <Label htmlFor="systemType" className="text-sm font-medium">
-                      Qual tipo de sistema você imagina ter?
-                    </Label>
-                    <Input
-                      id="systemType"
-                      value={formData.systemType}
-                      onChange={(e) => handleChange("systemType", e.target.value)}
-                      placeholder="Ex: app de treinos, plataforma de membros..."
-                      className={`bg-card-bg border-border focus:border-neon transition-colors ${errors.systemType ? 'border-red-500' : ''}`}
-                    />
-                    {errors.systemType && <p className="text-red-500 text-xs mt-1">{errors.systemType}</p>}
-                  </div>
+                      {/* Tipo de sistema */}
+                      <div className="space-y-2">
+                        <Label htmlFor="systemType" className="text-sm font-medium">
+                          Qual tipo de sistema você imagina ter?
+                        </Label>
+                        <Input
+                          id="systemType"
+                          value={formData.systemType}
+                          onChange={(e) => handleChange("systemType", e.target.value)}
+                          placeholder="Ex: app de treinos, plataforma de membros..."
+                          className={`bg-card-bg border-border focus:border-neon transition-colors ${errors.systemType ? 'border-red-500' : ''}`}
+                        />
+                        {errors.systemType && <p className="text-red-500 text-xs mt-1">{errors.systemType}</p>}
+                      </div>
 
-                  {/* Objetivo principal */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium">
-                      Qual é o principal objetivo com esse sistema?
-                    </Label>
-                    <RadioGroup value={formData.mainGoal} onValueChange={(value) => handleChange("mainGoal", value)}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="recurring-income" id="recurring-income" />
-                        <Label htmlFor="recurring-income" className="font-normal cursor-pointer">Gerar renda recorrente</Label>
+                      {/* Objetivo principal */}
+                      <div className="space-y-3">
+                        <Label className="text-sm font-medium">
+                          Qual é o principal objetivo com esse sistema?
+                        </Label>
+                        <RadioGroup value={formData.mainGoal} onValueChange={(value) => handleChange("mainGoal", value)}>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="recurring-income" id="recurring-income" />
+                            <Label htmlFor="recurring-income" className="font-normal cursor-pointer">Gerar renda recorrente</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="community" id="community" />
+                            <Label htmlFor="community" className="font-normal cursor-pointer">Criar comunidade exclusiva</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="automate-sales" id="automate-sales" />
+                            <Label htmlFor="automate-sales" className="font-normal cursor-pointer">Automatizar vendas</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="engagement" id="engagement" />
+                            <Label htmlFor="engagement" className="font-normal cursor-pointer">Aumentar engajamento</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="other" id="other-goal" />
+                            <Label htmlFor="other-goal" className="font-normal cursor-pointer">Outro</Label>
+                          </div>
+                        </RadioGroup>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="community" id="community" />
-                        <Label htmlFor="community" className="font-normal cursor-pointer">Criar comunidade exclusiva</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="automate-sales" id="automate-sales" />
-                        <Label htmlFor="automate-sales" className="font-normal cursor-pointer">Automatizar vendas</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="engagement" id="engagement" />
-                        <Label htmlFor="engagement" className="font-normal cursor-pointer">Aumentar engajamento</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="other" id="other-goal" />
-                        <Label htmlFor="other-goal" className="font-normal cursor-pointer">Outro</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
+                    </>
+                  )}
 
-                  {/* Disposto a investir */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium">
-                      Você estaria disposto a investir em um setup inicial se o retorno for alto?
-                    </Label>
-                    <RadioGroup value={formData.willingToInvest} onValueChange={(value) => handleChange("willingToInvest", value)}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="yes" id="invest-yes" />
-                        <Label htmlFor="invest-yes" className="font-normal cursor-pointer">Sim, se fizer sentido</Label>
+                  {/* Step 3: Motivação e Investimento */}
+                  {currentStep === 3 && (
+                    <>
+                      {/* Disposto a investir */}
+                      <div className="space-y-3">
+                        <Label className="text-sm font-medium">
+                          Você estaria disposto a investir em um setup inicial se o retorno for alto?
+                        </Label>
+                        <RadioGroup value={formData.willingToInvest} onValueChange={(value) => handleChange("willingToInvest", value)}>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="yes" id="invest-yes" />
+                            <Label htmlFor="invest-yes" className="font-normal cursor-pointer">Sim, se fizer sentido</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="maybe" id="invest-maybe" />
+                            <Label htmlFor="invest-maybe" className="font-normal cursor-pointer">Talvez</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="commission-only" id="commission-only" />
+                            <Label htmlFor="commission-only" className="font-normal cursor-pointer">Prefiro começar 100% com comissão</Label>
+                          </div>
+                        </RadioGroup>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="maybe" id="invest-maybe" />
-                        <Label htmlFor="invest-maybe" className="font-normal cursor-pointer">Talvez</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="commission-only" id="commission-only" />
-                        <Label htmlFor="commission-only" className="font-normal cursor-pointer">Prefiro começar 100% com comissão</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
 
-                  {/* Motivação */}
-                  <div className="space-y-2">
-                    <Label htmlFor="motivation" className="flex items-center gap-2 text-sm font-medium">
-                      <MessageSquare className="w-4 h-4 text-neon" />
-                      Conte um pouco sobre você e o que te motiva a criar um sistema próprio:
-                    </Label>
-                    <Textarea
-                      id="motivation"
-                      value={formData.motivation}
-                      onChange={(e) => handleChange("motivation", e.target.value)}
-                      placeholder="Compartilhe sua história e objetivos..."
-                      className={`min-h-[120px] bg-card-bg border-border focus:border-neon transition-colors resize-none ${errors.motivation ? 'border-red-500' : ''}`}
-                    />
-                    {errors.motivation && <p className="text-red-500 text-xs mt-1">{errors.motivation}</p>}
-                  </div>
+                      {/* Motivação */}
+                      <div className="space-y-2">
+                        <Label htmlFor="motivation" className="flex items-center gap-2 text-sm font-medium">
+                          <MessageSquare className="w-4 h-4 text-neon" />
+                          Conte um pouco sobre você e o que te motiva a criar um sistema próprio:
+                        </Label>
+                        <Textarea
+                          id="motivation"
+                          value={formData.motivation}
+                          onChange={(e) => handleChange("motivation", e.target.value)}
+                          placeholder="Compartilhe sua história e objetivos..."
+                          className={`min-h-[120px] bg-card-bg border-border focus:border-neon transition-colors resize-none ${errors.motivation ? 'border-red-500' : ''}`}
+                        />
+                        {errors.motivation && <p className="text-red-500 text-xs mt-1">{errors.motivation}</p>}
+                      </div>
+                    </>
+                  )}
 
-                  {/* Submit Button */}
-                  <Button
-                    type="submit"
-                    size="lg"
-                    disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-neon to-[#0066FF] text-dark-bg hover:opacity-90 hover-glow text-lg py-6 h-auto disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        ENVIANDO...
-                      </>
-                    ) : (
-                      "ENVIAR ANÁLISE"
+                  {/* Navigation Buttons */}
+                  <div className="flex justify-between mt-8">
+                    {currentStep > 0 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleBack}
+                        className="border-neon text-neon hover:bg-neon hover:text-dark-bg hover-glow"
+                      >
+                        Voltar
+                      </Button>
                     )}
-                  </Button>
+                    {currentStep < formSteps.length - 1 && (
+                      <Button
+                        type="button"
+                        onClick={handleNext}
+                        className="bg-neon text-dark-bg hover:bg-neon-glow hover-glow ml-auto"
+                      >
+                        Próximo
+                      </Button>
+                    )}
+                    {currentStep === formSteps.length - 1 && (
+                      <Button
+                        type="submit"
+                        size="lg"
+                        disabled={isLoading}
+                        className="w-full bg-gradient-to-r from-neon to-[#0066FF] text-dark-bg hover:opacity-90 hover-glow text-lg py-6 h-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                            ENVIANDO...
+                          </>
+                        ) : (
+                          "ENVIAR ANÁLISE"
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </form>
               </div>
             ) : (
