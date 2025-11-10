@@ -2,8 +2,11 @@ import { motion } from "framer-motion";
 import { ArrowRight, Sparkles, Zap, TrendingUp, Brain, Rocket, DollarSign, Users, Smartphone, BarChart3, Shield, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useState } from "react";
+import AnalysisFormModal from "@/components/AnalysisFormModal";
 
 const Index = () => {
+  const [modalOpen, setModalOpen] = useState(false);
   const fadeInUp = {
     initial: { opacity: 0, y: 30 },
     animate: { opacity: 1, y: 0 },
@@ -28,7 +31,11 @@ const Index = () => {
       >
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="text-2xl font-bold text-neon glow-neon">Creator Systems</div>
-          <Button variant="outline" className="border-neon text-neon hover:bg-neon hover:text-dark-bg hover-glow">
+          <Button 
+            variant="outline" 
+            className="border-neon text-neon hover:bg-neon hover:text-dark-bg hover-glow"
+            onClick={() => setModalOpen(true)}
+          >
             Começar Agora
           </Button>
         </div>
@@ -71,7 +78,11 @@ const Index = () => {
           </motion.p>
 
           <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-4">
-            <Button size="lg" className="bg-neon text-dark-bg hover:bg-neon-glow hover-glow text-lg px-8 py-6 h-auto group">
+            <Button 
+              size="lg" 
+              className="bg-neon text-dark-bg hover:bg-neon-glow hover-glow text-lg px-8 py-6 h-auto group"
+              onClick={() => setModalOpen(true)}
+            >
               QUERO MEU APP GRATUITO
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
@@ -147,7 +158,12 @@ const Index = () => {
             viewport={{ once: true }}
             className="text-center mt-12"
           >
-            <Button variant="outline" size="lg" className="border-neon text-neon hover:bg-neon hover:text-dark-bg hover-glow">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="border-neon text-neon hover:bg-neon hover:text-dark-bg hover-glow"
+              onClick={() => setModalOpen(true)}
+            >
               QUERO SABER COMO FUNCIONA
             </Button>
           </motion.div>
@@ -245,7 +261,11 @@ const Index = () => {
                 </div>
               ))}
 
-              <Button size="lg" className="bg-neon text-dark-bg hover:bg-neon-glow hover-glow w-full mt-8">
+              <Button 
+                size="lg" 
+                className="bg-neon text-dark-bg hover:bg-neon-glow hover-glow w-full mt-8"
+                onClick={() => setModalOpen(true)}
+              >
                 QUERO MEU SISTEMA AGORA
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
@@ -300,7 +320,11 @@ const Index = () => {
                 Nós construímos. Você lucra. Simples assim.
               </p>
               
-              <Button size="lg" className="bg-neon text-dark-bg hover:bg-neon-glow hover-glow text-xl px-12 py-8 h-auto group">
+              <Button 
+                size="lg" 
+                className="bg-neon text-dark-bg hover:bg-neon-glow hover-glow text-xl px-12 py-8 h-auto group"
+                onClick={() => setModalOpen(true)}
+              >
                 COMEÇAR AGORA — QUERO MEU APP GRATUITO
                 <ArrowRight className="ml-2 w-6 h-6 group-hover:translate-x-2 transition-transform" />
               </Button>
@@ -315,6 +339,9 @@ const Index = () => {
           <p>© 2025 Creator Systems. Transformando influenciadores em empresários digitais.</p>
         </div>
       </footer>
+
+      {/* Modal */}
+      <AnalysisFormModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 };
