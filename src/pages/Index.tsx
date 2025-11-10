@@ -83,7 +83,7 @@ const Index = () => {
               className="bg-neon text-dark-bg hover:bg-neon-glow hover-glow text-lg px-8 py-6 h-auto group"
               onClick={() => setModalOpen(true)}
             >
-              QUERO MEU APP GRATUITO
+              QUERO MEU APP GRATUITO!
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </motion.div>
