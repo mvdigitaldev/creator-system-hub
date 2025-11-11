@@ -215,6 +215,7 @@ const Automatizar = () => {
             transition={{ ...fadeInUp.transition, delay: 0.2 }}
             whileHover="hover"
             className="bg-gradient-to-r from-neon to-[#0066FF] text-dark-bg hover:opacity-90 hover-glow text-xl px-12 py-6 h-auto rounded-md font-semibold shadow-lg"
+            onClick={() => setModalOpen(true)}
           >
             Quero automatizar minha empresa e crescer com IA 🚀
           </motion.button>

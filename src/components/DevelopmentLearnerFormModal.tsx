@@ -111,8 +111,18 @@ const DevelopmentLearnerFormModal = ({ isOpen, onClose }: DevelopmentLearnerForm
     console.log("Formulário de Aprendiz de Desenvolvimento enviado:", formData);
 
     try {
-      // Simulação de envio
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await fetch("https://webhook.iaagents.online/webhook/d8c50293-1c4b-4b95-ba87-db8ecbd8acd9", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro no servidor: ${response.statusText}`);
+      }
+      // await new Promise(resolve => setTimeout(resolve, 2000));
       setSubmitted(true);
       toast({
         title: "Formulário enviado!",
