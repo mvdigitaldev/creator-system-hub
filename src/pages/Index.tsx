@@ -62,7 +62,7 @@ const Index = () => {
           <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-4">
             <Button 
               size="lg" 
-              className="bg-neon text-dark-bg hover:bg-neon-glow hover-glow text-lg md:text-xl w-full md:w-auto h-auto group px-8 py-6"
+              className="bg-neon text-dark-bg hover:bg-neon-glow hover-glow text-lg md:text-xl w-full md:w-auto h-auto group px-8 py-6 rounded-md"
               onClick={() => setModalOpen(true)}
             >
               QUERO MEU APP GRATUITO!
@@ -143,7 +143,7 @@ const Index = () => {
             <Button 
               variant="outline" 
               size="lg" 
-              className="border-neon text-neon hover:bg-neon hover:text-dark-bg hover-glow px-8 py-4"
+              className="border-neon text-neon hover:bg-neon hover:text-dark-bg hover-glow px-8 py-4 rounded-md"
               onClick={() => setModalOpen(true)}
             >
               QUERO SABER COMO FUNCIONA
@@ -245,7 +245,7 @@ const Index = () => {
 
               <Button 
                 size="lg" 
-                className="bg-neon text-dark-bg hover:bg-neon-glow hover-glow w-full mt-8"
+                className="bg-neon text-dark-bg hover:bg-neon-glow hover-glow w-full mt-8 rounded-md"
                 onClick={() => setModalOpen(true)}
               >
                 QUERO MEU SISTEMA AGORA
@@ -304,7 +304,7 @@ const Index = () => {
               
               <Button 
                 size="lg" 
-                className="w-full sm:w-auto bg-neon text-dark-bg hover:bg-neon-glow hover-glow text-xl px-12 py-8 h-auto group whitespace-normal break-words text-center"
+                className="w-full sm:w-auto bg-neon text-dark-bg hover:bg-neon-glow hover-glow text-xl px-12 py-8 h-auto group whitespace-normal break-words text-center rounded-md"
                 onClick={() => setModalOpen(true)}
               >
                 COMEÇAR AGORA
