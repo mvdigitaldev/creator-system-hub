@@ -126,7 +126,7 @@ const Links = () => {
             </div>
             <div>
               <h3 className="text-2xl font-bold mb-1 text-neon group-hover:glow-neon transition-all">Quero aprender a desenvolver com IA</h3>
-              <p className="text-muted-foreground">Descubra o passo a passo para criar sistemas inteligentes e lucrativos, mesmo sem experiência.</p>
+              <p className="text-muted-foreground">Descubra o passo a passo para criar sistemas inteligentes e lucrativos.</p>
             </div>
           </motion.a>
         </motion.div>
